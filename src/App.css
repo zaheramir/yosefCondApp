@@ -1,0 +1,21 @@
+.App {
+    text-align: center;
+    background-image: url('./wallpaper.jpg'); /* Add your wallpaper image */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+  
+  h1 {
+    font-size: 3rem;
+  }
+  
+  p {
+    font-size: 1.5rem;
+  }
+  

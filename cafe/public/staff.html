@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Orders</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .order {
+            background-color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .order ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .order ul li {
+            padding: 5px 0;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Current Orders</h1>
+    <div id="orders-container">
+        <p>Loading orders...</p>
+    </div>
+
+    <script>
+        const ordersContainer = document.getElementById('orders-container');
+
+        async function fetchOrders() {
+            console.log("Fetching orders..."); // Log to see if the function is being called
+
+            try {
+                const response = await fetch('https://cafe-production.up.railway.app/get-orders');
+                const orders = await response.json();
+
+                const validOrders = orders.filter(order => order !== null); // Filter out null entries
+                console.log(validOrders); // Log the valid orders to check the fetched data
+
+                ordersContainer.innerHTML = ''; // Clear existing orders
+
+                if (validOrders.length === 0) {
+                    ordersContainer.innerHTML = '<p>No orders available.</p>';
+                } else {
+                    validOrders.forEach((order, index) => {
+                        const orderDiv = document.createElement('div');
+                        orderDiv.className = 'order';
+
+                        const orderHeader = document.createElement('div');
+                        orderHeader.className = 'order-header';
+                        orderHeader.innerHTML = `<h2>Order #${index + 1} - ${order.name} (${order.phone})</h2>`; // Display the name and phone number
+                        orderDiv.appendChild(orderHeader);
+
+                        const orderList = document.createElement('ul');
+                        order.items.forEach(item => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${item.item} with ${item.extras.length > 0 ? item.extras.join(', ') : 'no extras'} - $${item.price}`;
+                            orderList.appendChild(listItem);
+                        });
+                        orderDiv.appendChild(orderList);
+
+                        const totalPrice = document.createElement('p');
+                        totalPrice.innerHTML = `<strong>Total: </strong>$${order.total}`;
+                        orderDiv.appendChild(totalPrice);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete Order';
+                        deleteButton.className = 'delete-button';
+                        deleteButton.addEventListener('click', () => deleteOrder(index));
+                        orderDiv.appendChild(deleteButton);
+
+                        ordersContainer.appendChild(orderDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                ordersContainer.innerHTML = '<p>Failed to load orders.</p>'; // Show error message
+            }
+        }
+
+        async function deleteOrder(index) {
+            try {
+                const response = await fetch(`https://cafe-production.up.railway.app/delete-order/${index}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('Order deleted successfully!');
+                    fetchOrders(); // Refresh orders after deletion
+                } else {
+                    alert('Failed to delete order.');
+                }
+            } catch (error) {
+                console.error('Error deleting order:', error);
+            }
+        }
+
+        // Fetch orders when the page loads
+        fetchOrders();
+    </script>
+
+</body>
+</html>
